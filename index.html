@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GIS Web App with Drawing Tools and KML Export</title>
+    <title>GIS Web App with Drawing Tools, Search Boundaries, Buffering, and KML Export</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Leaflet Draw CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <!-- Leaflet Search Plugin CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
     <style>
         body {
@@ -35,11 +37,15 @@
             margin-top: 0;
         }
 
-        select, button {
+        select, button, input[type="text"], input[type="number"] {
             width: 100%;
             padding: 8px;
             font-size: 16px;
             margin-bottom: 10px;
+        }
+
+        .analysis-section {
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -48,7 +54,29 @@
     <div id="sidebar">
         <h2>GIS Tools</h2>
         <p>Use the toolbar on the map to draw points, lines, and polygons.</p>
+        
+        <!-- Original Export Button -->
         <button id="exportKML">Export Drawn Features (KML)</button>
+
+        <h2>Search & Export</h2>
+        <!-- New Search Box -->
+        <input type="text" id="searchInput" placeholder="Search for location...">
+        
+        <!-- New Export Button for Search results -->
+        <button id="exportKMLSearch">Export Search Boundaries (KML)</button>
+
+        <!-- Analysis Section -->
+        <div class="analysis-section">
+            <h2>Analysis: Buffering</h2>
+            <p>Enter X, Y coordinates in meters and the buffer distance (in meters):</p>
+            <label for="xCoord">X Coordinate (longitude):</label>
+            <input type="number" id="xCoord" placeholder="Enter X Coordinate" />
+            <label for="yCoord">Y Coordinate (latitude):</label>
+            <input type="number" id="yCoord" placeholder="Enter Y Coordinate" />
+            <label for="bufferDistance">Buffer Distance (meters):</label>
+            <input type="number" id="bufferDistance" placeholder="Enter buffer distance" />
+            <button id="applyBuffer">Apply Buffer</button>
+        </div>
     </div>
 
     <!-- Map Container -->
@@ -58,6 +86,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Leaflet Draw Plugin JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <!-- Leaflet Search Plugin JS -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <!-- Leaflet Buffer Plugin -->
+    <script src="https://unpkg.com/leaflet-buffer@1.0.0/leaflet-buffer.js"></script>
 
     <script>
         // Initialize the map
@@ -136,7 +168,7 @@
             return kml;
         }
 
-        // Handle the KML export button
+        // Handle the KML export button for drawn features
         document.getElementById('exportKML').addEventListener('click', function () {
             // Convert the drawn items to GeoJSON
             const geojson = drawnItems.toGeoJSON();
@@ -155,6 +187,113 @@
 
             URL.revokeObjectURL(url);
         });
+
+        // Function to handle the new search input manually
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value;
+            if (query.length > 2) {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=de`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const result = data[0]; // First search result
+                            const lat = result.lat;
+                            const lon = result.lon;
+
+                            // Zoom and center the map on the searched place
+                            map.setView([lat, lon], 12); // Adjust zoom level as needed
+                        }
+                    });
+            }
+        });
+
+        // Handle the KML export button for the search result
+        document.getElementById('exportKMLSearch').addEventListener('click', function () {
+            const query = document.getElementById('searchInput').value;
+            if (query) {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=de&polygon_geojson=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const result = data[0]; // First search result
+                            const lat = result.lat;
+                            const lon = result.lon;
+
+                            // Create a GeoJSON object for the polygon (boundary) of the place
+                            const geojson = {
+                                type: "FeatureCollection",
+                                features: [{
+                                    type: "Feature",
+                                    geometry: result.geojson, // Use the geojson boundary directly
+                                    properties: {
+                                        name: result.display_name
+                                    }
+                                }]
+                            };
+
+                            // Draw the polygon on the map
+                            const boundaryLayer = L.geoJSON(geojson).addTo(map);
+                            map.fitBounds(boundaryLayer.getBounds()); // Fit the map view to the boundary
+
+                            // Convert GeoJSON to KML
+                            const kmlData = geoJsonToKml(geojson);
+
+                            // Trigger a download
+                            const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
+                            const url = URL.createObjectURL(blob);
+
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${query}_boundary.kml`;
+                            a.click();
+
+                            URL.revokeObjectURL(url);
+                        }
+                    });
+            }
+        });
+
+        // Handle the buffer application logic
+        document.getElementById('applyBuffer').addEventListener('click', function () {
+            const xCoord = parseFloat(document.getElementById('xCoord').value);
+            const yCoord = parseFloat(document.getElementById('yCoord').value);
+            const bufferDistance = parseFloat(document.getElementById('bufferDistance').value);
+
+            if (!xCoord || !yCoord || !bufferDistance) {
+                alert("Please enter valid X, Y coordinates and buffer distance.");
+                return;
+            }
+
+            // Create a point from the X, Y coordinates
+            const point = L.latLng(yCoord, xCoord); // Coordinates should be (latitude, longitude)
+            
+            // Create a buffer around the point
+            const buffer = point.buffer(bufferDistance); // Buffer is in meters
+
+            // Draw the buffer as a polygon
+            const bufferPolygon = L.geoJSON(buffer).addTo(map);
+            map.fitBounds(bufferPolygon.getBounds()); // Fit the map view to the buffer
+
+            // Optionally, export the buffered polygon as KML
+            const geojson = buffer.toGeoJSON();
+            const kmlData = geoJsonToKml(geojson);
+            const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `buffer_${xCoord}_${yCoord}_distance_${bufferDistance}.kml`;
+            a.click();
+
+            URL.revokeObjectURL(url);
+        });
+
+        // Add Nominatim search to the map (OpenStreetMap geocoder)
+        const geocoder = L.Control.Geocoder.nominatim();
+        L.Control.geocoder({
+            position: 'topright',
+            geocoder: geocoder
+        }).addTo(map);
     </script>
 </body>
 </html>
