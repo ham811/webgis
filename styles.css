@@ -1,0 +1,34 @@
+body {
+    margin: 0;
+    display: flex;
+}
+
+#sidebar {
+    width: 300px;
+    height: 100vh;
+    background-color: #f8f9fa;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+}
+
+#map {
+    flex: 1;
+    height: 100vh;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 0;
+}
+
+select, button, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.analysis-section {
+    margin-top: 30px;
+}
