@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GIS Web App with Drawing Tools and KML Export</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+        }
+
+        #sidebar {
+            width: 300px;
+            height: 100vh;
+            background-color: #f8f9fa;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        #map {
+            flex: 1;
+            height: 100vh;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <h2>GIS Tools</h2>
+        <p>Use the toolbar on the map to draw points, lines, and polygons.</p>
+        <button id="exportKML">Export Drawn Features (KML)</button>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Draw Plugin JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([51.505, -0.09], 13); // Default center: London
+
+        // Add a tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Create a feature group to store drawn items
+        const drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // Add Leaflet Draw control to the map
+        const drawControl = new L.Control.Draw({
+            edit: {
+                featureGroup: drawnItems, // Allow editing of drawn items
+            },
+            draw: {
+                polyline: true,   // Allow drawing of lines
+                polygon: true,    // Allow drawing of polygons
+                circle: false,    // Disable circle drawing
+                rectangle: false, // Disable rectangle drawing
+                marker: true      // Allow drawing of points
+            }
+        });
+        map.addControl(drawControl);
+
+        // Handle the creation of new shapes
+        map.on(L.Draw.Event.CREATED, function (event) {
+            const layer = event.layer;
+            drawnItems.addLayer(layer); // Add the drawn layer to the feature group
+
+            // Optionally bind a popup to the new shape
+            if (event.layerType === 'marker') {
+                layer.bindPopup('You drew a point!');
+            } else if (event.layerType === 'polyline') {
+                layer.bindPopup('You drew a line!');
+            } else if (event.layerType === 'polygon') {
+                layer.bindPopup('You drew a polygon!');
+            }
+
+            layer.openPopup(); // Automatically open the popup
+        });
+
+        // Function to convert GeoJSON to KML
+        function geoJsonToKml(geojson) {
+            let kml = '<?xml version="1.0" encoding="UTF-8"?>';
+            kml += '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>';
+
+            geojson.features.forEach(function (feature) {
+                kml += '<Placemark>';
+                kml += '<name>' + (feature.properties.name || 'Unnamed') + '</name>';
+
+                if (feature.geometry.type === 'Point') {
+                    kml += '<Point><coordinates>' + feature.geometry.coordinates.join(',') + '</coordinates></Point>';
+                } else if (feature.geometry.type === 'Polygon') {
+                    kml += '<Polygon><outerBoundaryIs><LinearRing><coordinates>';
+                    feature.geometry.coordinates[0].forEach(function (coord) {
+                        kml += coord.join(',') + ' ';
+                    });
+                    kml += '</coordinates></LinearRing></outerBoundaryIs></Polygon>';
+                } else if (feature.geometry.type === 'LineString') {
+                    kml += '<LineString><coordinates>';
+                    feature.geometry.coordinates.forEach(function (coord) {
+                        kml += coord.join(',') + ' ';
+                    });
+                    kml += '</coordinates></LineString>';
+                }
+
+                kml += '</Placemark>';
+            });
+
+            kml += '</Document></kml>';
+            return kml;
+        }
+
+        // Handle the KML export button
+        document.getElementById('exportKML').addEventListener('click', function () {
+            // Convert the drawn items to GeoJSON
+            const geojson = drawnItems.toGeoJSON();
+
+            // Convert GeoJSON to KML
+            const kmlData = geoJsonToKml(geojson);
+
+            // Trigger a download
+            const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'drawn_features.kml';
+            a.click();
+
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
