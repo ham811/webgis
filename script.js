@@ -1,5 +1,5 @@
 // Initialize the map
-const map = L.map('map').setView([51.505, -0.09], 13); // Default center: London
+const map = L.map('map').setView([51.5167, 9.9167], 6); // Default center: London
 
 // Add a tile layer (OpenStreetMap)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -31,17 +31,31 @@ map.on(L.Draw.Event.CREATED, function (event) {
     drawnItems.addLayer(layer); // Add the drawn layer to the feature group
 
     // Optionally bind a popup to the new shape
-    if (event.layerType === 'marker') {
-        layer.bindPopup('You drew a point!');
-    } else if (event.layerType === 'polyline') {
-        layer.bindPopup('You drew a line!');
-    } else if (event.layerType === 'polygon') {
-        layer.bindPopup('You drew a polygon!');
-    }
-
-    layer.openPopup(); // Automatically open the popup
+    const shapeType = event.layerType;
+    const message = shapeType === 'marker' ? 'You drew a point!' :
+                    shapeType === 'polyline' ? 'You drew a line!' :
+                    shapeType === 'polygon' ? 'You drew a polygon!' : 'Shape added!';
+    layer.bindPopup(message).openPopup(); // Automatically open the popup
 });
-// Handle the KML export button for the search result
+
+// KML Export for Drawn Features
+document.getElementById('exportKML').addEventListener('click', function () {
+    const geojson = drawnItems.toGeoJSON(); // Convert the drawn items to GeoJSON
+    const kmlData = geoJsonToKml(geojson); // Convert GeoJSON to KML
+
+    // Trigger a download
+    const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'drawn_features.kml';
+    a.click();
+
+    URL.revokeObjectURL(url);
+});
+
+// KML Export for Search Results
 document.getElementById('exportKMLSearch').addEventListener('click', function () {
     const query = document.getElementById('searchInput').value;
 
@@ -51,40 +65,35 @@ document.getElementById('exportKMLSearch').addEventListener('click', function ()
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    const result = data[0]; // First search result
+                    const result = data[0];
                     const lat = parseFloat(result.lat);
                     const lon = parseFloat(result.lon);
 
                     // Create GeoJSON for the location and boundary (if available)
                     const geojson = {
                         type: "FeatureCollection",
-                        features: []
+                        features: [{
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: [lon, lat]
+                            },
+                            properties: {
+                                name: result.display_name
+                            }
+                        }]
                     };
 
-                    // Add the point of the search result
-                    geojson.features.push({
-                        type: "Feature",
-                        geometry: {
-                            type: "Point",
-                            coordinates: [lon, lat] // Longitude, Latitude
-                        },
-                        properties: {
-                            name: result.display_name
-                        }
-                    });
-
-                    // Add the boundary (if available)
                     if (result.geojson) {
                         geojson.features.push({
                             type: "Feature",
-                            geometry: result.geojson, // Use the GeoJSON boundary directly
+                            geometry: result.geojson,
                             properties: {
                                 name: `${result.display_name} Boundary`
                             }
                         });
                     }
 
-                    // Convert GeoJSON to KML
                     const kmlData = geoJsonToKml(geojson);
 
                     // Trigger a download
@@ -110,72 +119,50 @@ document.getElementById('exportKMLSearch').addEventListener('click', function ()
     }
 });
 
-// Function to convert GeoJSON to KML
-function geoJsonToKml(geojson) {
-    let kml = '<?xml version="1.0" encoding="UTF-8"?>';
-    kml += '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>';
+// Buffer Analysis
+document.getElementById('applyBuffer').addEventListener('click', function () {
+    const xCoord = parseFloat(document.getElementById('xCoord').value);
+    const yCoord = parseFloat(document.getElementById('yCoord').value);
+    const bufferDistance = parseFloat(document.getElementById('bufferDistance').value);
 
-    geojson.features.forEach(function (feature) {
-        kml += '<Placemark>';
-        kml += '<name>' + (feature.properties.name || 'Unnamed') + '</name>';
+    if (!xCoord || !yCoord || !bufferDistance) {
+        alert("Please enter valid X, Y coordinates and buffer distance.");
+        return;
+    }
 
-        if (feature.geometry.type === 'Point') {
-            kml += '<Point><coordinates>' + feature.geometry.coordinates.join(',') + '</coordinates></Point>';
-        } else if (feature.geometry.type === 'Polygon') {
-            kml += '<Polygon><outerBoundaryIs><LinearRing><coordinates>';
-            feature.geometry.coordinates[0].forEach(function (coord) {
-                kml += coord.join(',') + ' ';
-            });
-            kml += '</coordinates></LinearRing></outerBoundaryIs></Polygon>';
-        } else if (feature.geometry.type === 'LineString') {
-            kml += '<LineString><coordinates>';
-            feature.geometry.coordinates.forEach(function (coord) {
-                kml += coord.join(',') + ' ';
-            });
-            kml += '</coordinates></LineString>';
+    const point = {
+        type: "Feature",
+        geometry: {
+            type: "Point",
+            coordinates: [xCoord, yCoord]
         }
+    };
 
-        kml += '</Placemark>';
-    });
+    const buffered = turf.buffer(point, bufferDistance, { units: 'meters' });
 
-    kml += '</Document></kml>';
-    return kml;
-}
+    const bufferLayer = L.geoJSON(buffered, {
+        style: { color: 'red', weight: 1, fillOpacity: 0.4 }
+    }).addTo(map);
 
-// Handle the KML export button for drawn features
-document.getElementById('exportKML').addEventListener('click', function () {
-    const geojson = drawnItems.toGeoJSON(); // Convert the drawn items to GeoJSON
-    const kmlData = geoJsonToKml(geojson); // Convert GeoJSON to KML
-
-    // Trigger a download
-    const blob = new Blob([kmlData], { type: 'application/vnd.google-earth.kml+xml' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'drawn_features.kml';
-    a.click();
-
-    URL.revokeObjectURL(url);
+    map.fitBounds(bufferLayer.getBounds());
 });
 
-// Handle the Search functionality
-document.getElementById('searchInput').addEventListener('input', function(e) {
+// Search Functionality
+document.getElementById('searchInput').addEventListener('input', function (e) {
     const query = e.target.value;
+
     if (query.length > 2) {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&polygon_geojson=1`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    const result = data[0]; // First search result
+                    const result = data[0];
                     const lat = parseFloat(result.lat);
                     const lon = parseFloat(result.lon);
 
-                    // Center the map and add a marker
                     map.setView([lat, lon], 12);
                     const marker = L.marker([lat, lon]).addTo(map).bindPopup(result.display_name).openPopup();
 
-                    // Draw boundary polygon if available
                     if (result.geojson) {
                         const boundaryLayer = L.geoJSON(result.geojson, {
                             style: { color: 'blue', weight: 2, fillOpacity: 0.2 }
@@ -187,34 +174,84 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     }
 });
 
-// Handle the Buffer functionality
-document.getElementById('applyBuffer').addEventListener('click', function () {
-    const xCoord = parseFloat(document.getElementById('xCoord').value);
-    const yCoord = parseFloat(document.getElementById('yCoord').value);
-    const bufferDistance = parseFloat(document.getElementById('bufferDistance').value);
+// GeoJSON to KML Converter
+function geoJsonToKml(geojson) {
+    let kml = '<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document>';
 
-    if (!xCoord || !yCoord || !bufferDistance) {
-        alert("Please enter valid X, Y coordinates and buffer distance.");
-        return;
-    }
+    geojson.features.forEach(feature => {
+        kml += '<Placemark>';
+        kml += `<name>${feature.properties.name || 'Unnamed'}</name>`;
 
-    // Create a GeoJSON point
-    const point = {
-        type: "Feature",
-        geometry: {
-            type: "Point",
-            coordinates: [xCoord, yCoord]
+        if (feature.geometry.type === 'Point') {
+            kml += `<Point><coordinates>${feature.geometry.coordinates.join(',')}</coordinates></Point>`;
+        } else if (feature.geometry.type === 'Polygon') {
+            kml += '<Polygon><outerBoundaryIs><LinearRing><coordinates>';
+            feature.geometry.coordinates[0].forEach(coord => {
+                kml += `${coord.join(',')} `;
+            });
+            kml += '</coordinates></LinearRing></outerBoundaryIs></Polygon>';
+        } else if (feature.geometry.type === 'LineString') {
+            kml += '<LineString><coordinates>';
+            feature.geometry.coordinates.forEach(coord => {
+                kml += `${coord.join(',')} `;
+            });
+            kml += '</coordinates></LineString>';
         }
-    };
 
-    // Buffer the point (buffer is in meters)
-    const buffered = turf.buffer(point, bufferDistance, { units: 'meters' });
+        kml += '</Placemark>';
+    });
 
-    // Add the buffered area to the map
-    const bufferLayer = L.geoJSON(buffered, {
-        style: { color: 'red', weight: 1, fillOpacity: 0.4 }
-    }).addTo(map);
+    return `${kml}</Document></kml>`;
+}
 
-    // Adjust the map view to fit the buffer
-    map.fitBounds(bufferLayer.getBounds());
+// Toggle Sidebar Sections
+document.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => toggleSection(header));
 });
+
+function toggleSection(headerElement) {
+    const content = headerElement.nextElementSibling;
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+}
+// WMS Layers for Germany (German sources)
+const wmsLayers = {
+    // Nature Layer: OpenStreetMap WMS
+    nature: L.tileLayer.wms("https://ows.terrestris.de/osm/service?", {
+        layers: "OSM-WMS",
+        format: "image/png",
+        transparent: true,
+        attribution: "OpenStreetMap WMS"
+    }),
+
+    // Topographic Layer: Germany Topographic WMS
+    topographic: L.tileLayer.wms("https://geoserver.someservice.com/wms", {
+        layers: "germany_topographic",
+        format: "image/png",
+        transparent: true,
+        attribution: "Topographic WMS"
+    }),
+
+    // Borders Layer: Demis WMS for Borders
+    borders: L.tileLayer.wms("https://www.demis.nl/wms/wms.aspx", {
+        layers: "borders",
+        format: "image/png",
+        transparent: true,
+        attribution: "Demis WMS"
+    })
+};
+
+// Map initialization (Assuming you have a map object in your script)
+
+// Add the base layer (example: OpenStreetMap)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// Function to toggle WMS layers
+function toggleWmsLayer(id, layer) {
+    const checkbox = document.getElementById(id);
+    
+    if (checkbox.checked) {
+        layer.addTo(map);
+    } else {
+        map.removeLayer(layer);
+    }
+}

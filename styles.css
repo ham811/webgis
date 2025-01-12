@@ -1,34 +1,114 @@
+/* Reset and Layout */
 body {
     margin: 0;
     display: flex;
+    font-family: Arial, sans-serif;
+    background-color: #f4f5f7;
 }
 
+/* Sidebar */
 #sidebar {
     width: 300px;
     height: 100vh;
-    background-color: #f8f9fa;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    border-right: 1px solid #ddd;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
     overflow-y: auto;
 }
 
+/* Section Styles */
+.section {
+    margin-bottom: 20px;
+}
+
+.section-header {
+    font-size: 18px;
+    margin: 0;
+    padding: 10px;
+    background-color: #007bff;
+    color: #ffffff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.section-header:hover {
+    background-color: #0056b3;
+}
+
+.section-content {
+    display: none; /* Hidden by default */
+    margin-top: 10px;
+}
+
+/* Inputs and Buttons */
+.input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.btn {
+    display: block;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group .input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Map */
 #map {
     flex: 1;
     height: 100vh;
 }
 
-h2 {
-    font-size: 20px;
-    margin-top: 0;
+/* Layers and WMS */
+
+.wms-group {
+    margin-bottom: 1em;
 }
 
-select, button, input[type="text"], input[type="number"] {
-    width: 100%;
-    padding: 8px;
-    font-size: 16px;
-    margin-bottom: 10px;
+.wms-group-header {
+    font-size: 1.1em;
+    margin-bottom: 0.5em;
 }
 
-.analysis-section {
-    margin-top: 30px;
+.wms-layer-list {
+    list-style: none;
+    padding-left: 1em;
+}
+
+.wms-layer-list li {
+    margin-bottom: 0.5em;
 }
