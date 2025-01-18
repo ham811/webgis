@@ -29,7 +29,7 @@ body {
 .nav-btn {
     flex: 1;
     padding: 10px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     text-align: center;
     border: none;
@@ -67,7 +67,7 @@ body {
 }
 
 .section-header {
-    font-size: 18px;
+    font-size: 12px;
     margin: 0;
     padding: 10px;
     background-color: #2600ff;
@@ -90,7 +90,7 @@ body {
 .input {
     width: 100%;
     padding: 8px;
-    font-size: 14px;
+    font-size: 12px;
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -109,7 +109,7 @@ body {
     color: white;
     border: none;
     padding: 8px 12px;
-    font-size: 14px;
+    font-size: 12px;
     text-align: center;
     border-radius: 4px;
     cursor: pointer;
@@ -124,6 +124,7 @@ body {
 .input-group {
     display: flex;
     gap: 10px;
+    flex-direction: column;
 }
 
 .input-group .input {
@@ -155,3 +156,156 @@ body {
 .wms-layer-list li {
     margin-bottom: 0.5em;
 }
+
+
+/* Sidebar Navigation Buttons (Updated for 3 Pages) */
+#sidebar-header {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.nav-btn.active {
+    background-color: #007BFF;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.nav-btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Sidebar Pages */
+.sidebar-page {
+    display: none;
+    flex: 1;
+}
+
+.sidebar-page.active {
+    display: block;
+}
+
+/* Section Styles */
+.section {
+    margin-bottom: 20px;
+}
+
+/* Inputs and Buttons for Advanced Search */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Align vertically */
+    gap: 10px; /* Space between buttons */
+    margin-top: 15px; /* Optional: Add spacing above the buttons */
+}
+
+/* Buttons */
+.button-container .btn {
+    flex: 0 1 auto; /* Allow buttons to size naturally */
+    padding: 10px 20px; /* Adjust padding for better alignment */
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-align: center;
+}
+
+.button-container .btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+
+
+/* Input Group Spacing */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spacing between individual inputs within the group */
+    width: 100%; /* Matches the sidebar width */
+    max-width: 270px; /* Adjust for sidebar padding */
+    box-sizing: border-box; /* Include padding in width */
+    margin: 20px auto; /* Adds vertical spacing above and below the group */
+}
+
+/* Add spacing for other buttons or elements */
+.input-group + .button-container,
+.input-group + .section-content {
+    margin-top: 20px; /* Add extra space after input groups */
+}
+
+/* Ensure spacing is consistent for buttons and other inputs */
+.input {
+    width: 100%; /* Match width of parent input group */
+    padding: 8px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.input-group .btn {
+    width: 100%; /* Full width of input group */
+    padding: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.input-group .btn:hover {
+    background-color: #0056b3;
+}
+
+
+
+
+/* Input for Search */
+#searchInput {
+    width: 100%; /* Full width of the section */
+    max-width: 300px; /* Limit the width of the input like other elements in the sidebar */
+    padding: 8px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+}
+
+
+
+
+

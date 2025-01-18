@@ -258,29 +258,41 @@ function toggleWmsLayer(id, layer) {
 
 
 
-
-
-
-
-// Sidebar Page Switching
+// Sidebar Page Switching Logic
 const page1Btn = document.getElementById("page1-btn");
 const page2Btn = document.getElementById("page2-btn");
+const page3Btn = document.getElementById("page3-btn");
 const page1 = document.getElementById("page1");
 const page2 = document.getElementById("page2");
+const page3 = document.getElementById("page3");
 
-page1Btn.addEventListener("click", () => {
-    page1.classList.add("active");
-    page2.classList.remove("active");
-    page1Btn.classList.add("active");
-    page2Btn.classList.remove("active");
+page1Btn.addEventListener("click", () => switchPage(page1Btn, page1));
+page2Btn.addEventListener("click", () => switchPage(page2Btn, page2));
+page3Btn.addEventListener("click", () => switchPage(page3Btn, page3));
+
+function switchPage(button, page) {
+    // Reset all buttons and pages
+    document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".sidebar-page").forEach(pg => pg.classList.remove("active"));
+
+    // Activate current button and page
+    button.classList.add("active");
+    page.classList.add("active");
+}
+
+// Advanced Search Export and Search Buttons
+const exportAdvancedKML = document.getElementById("exportAdvancedKML");
+const performAdvancedSearch = document.getElementById("performAdvancedSearch");
+
+exportAdvancedKML.addEventListener("click", () => {
+    alert("Exporting Advanced Search data as KML...");
 });
 
-page2Btn.addEventListener("click", () => {
-    page2.classList.add("active");
-    page1.classList.remove("active");
-    page2Btn.classList.add("active");
-    page1Btn.classList.remove("active");
-});
+performAdvancedSearch.addEventListener("click", () => {
+    const param1 = document.getElementById("searchInput1").value;
+    const param2 = document.getElementById("searchInput2").value;
+    const param3 = document.getElementById("searchInput3").value;
 
-// Your existing map logic...
+    alert(`Performing search with:\n- Parameter 1: ${param1}\n- Parameter 2: ${param2}\n- Parameter 3: ${param3}`);
+});
 
