@@ -26,7 +26,7 @@ body {
     font-size: 18px;
     margin: 0;
     padding: 10px;
-    background-color: #007bff;
+    background-color: #2600ff;
     color: #ffffff;
     border-radius: 5px;
     cursor: pointer;
@@ -34,7 +34,7 @@ body {
 }
 
 .section-header:hover {
-    background-color: #0056b3;
+    background-color: #b300b3;
 }
 
 .section-content {
@@ -55,13 +55,13 @@ body {
 
 .input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    border-color: #bbccdf;
+    box-shadow: 0 0 5px rgba(214, 184, 228, 0.5);
 }
 
 .btn {
     display: block;
-    background-color: #007bff;
+    background-color: #a9e8bf;
     color: white;
     border: none;
     padding: 8px 12px;
@@ -73,7 +73,7 @@ body {
 }
 
 .btn:hover {
-    background-color: #0056b3;
+    background-color: #8ff7c5;
     transform: translateY(-2px);
 }
 
