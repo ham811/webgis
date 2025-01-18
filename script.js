@@ -255,3 +255,32 @@ function toggleWmsLayer(id, layer) {
         map.removeLayer(layer);
     }
 }
+
+
+
+
+
+
+
+// Sidebar Page Switching
+const page1Btn = document.getElementById("page1-btn");
+const page2Btn = document.getElementById("page2-btn");
+const page1 = document.getElementById("page1");
+const page2 = document.getElementById("page2");
+
+page1Btn.addEventListener("click", () => {
+    page1.classList.add("active");
+    page2.classList.remove("active");
+    page1Btn.classList.add("active");
+    page2Btn.classList.remove("active");
+});
+
+page2Btn.addEventListener("click", () => {
+    page2.classList.add("active");
+    page1.classList.remove("active");
+    page2Btn.classList.add("active");
+    page1Btn.classList.remove("active");
+});
+
+// Your existing map logic...
+

@@ -15,6 +15,50 @@ body {
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
     padding: 15px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navigation Buttons */
+#sidebar-header {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.nav-btn.active {
+    background-color: #007BFF;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.nav-btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Sidebar Pages */
+.sidebar-page {
+    display: none;
+    flex: 1;
+}
+
+.sidebar-page.active {
+    display: block;
 }
 
 /* Section Styles */
@@ -93,8 +137,7 @@ body {
     height: 100vh;
 }
 
-/* Layers and WMS */
-
+/* WMS Layers */
 .wms-group {
     margin-bottom: 1em;
 }

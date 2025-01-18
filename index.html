@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS Web App with Enhanced Navigation</title>
+    <title>GIS Web App with Enhanced Sidebar</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -12,75 +12,88 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Sidebar -->
+    <!-- Sidebar with Multiple Pages -->
     <div id="sidebar">
-        <!-- GIS Tools Section -->
-        <div class="section">
-            <h2 class="section-header">🗺️ GIS Tools</h2>
-            <div class="section-content">
-                <p>Use the toolbar on the map to draw points, lines, and polygons.</p>
-                <button id="exportKML" class="btn">Export KML</button>
+        <!-- Navigation Header -->
+        <div id="sidebar-header">
+            <button id="page1-btn" class="nav-btn active">GIS Tools</button>
+            <button id="page2-btn" class="nav-btn">WMS Layers</button>
+        </div>
+        
+
+        <!-- Page 1: GIS Tools -->
+        <div id="page1" class="sidebar-page active">
+            <!-- GIS Tools Section -->
+            <div class="section">
+                <h2 class="section-header">🗺️ GIS Tools</h2>
+                <div class="section-content">
+                    <p>Use the toolbar on the map to draw points, lines, and polygons.</p>
+                    <button id="exportKML" class="btn">Export KML</button>
+                </div>
+            </div>
+
+            <!-- Search & Export Section -->
+            <div class="section">
+                <h2 class="section-header">🔍 Search & Export</h2>
+                <div class="section-content">
+                    <input type="text" id="searchInput" placeholder="Search for location..." class="input">
+                    <button id="exportKMLSearch" class="btn">Export Search</button>
+                </div>
+            </div>
+
+            <!-- Buffering Analysis Section -->
+            <div class="section">
+                <h2 class="section-header">📏 Buffering Analysis</h2>
+                <div class="section-content">
+                    <p>Enter X, Y coordinates and buffer distance:</p>
+                    <div class="input-group">
+                        <input type="number" id="xCoord" placeholder="X (Lon)" class="input">
+                        <input type="number" id="yCoord" placeholder="Y (Lat)" class="input">
+                    </div>
+                    <input type="number" id="bufferDistance" placeholder="Buffer Distance (m)" class="input">
+                    <button id="applyBuffer" class="btn">Apply Buffer</button>
+                </div>
             </div>
         </div>
 
-        <!-- Search & Export Section -->
-        <div class="section">
-            <h2 class="section-header">🔍 Search & Export</h2>
-            <div class="section-content">
-                <input type="text" id="searchInput" placeholder="Search for location..." class="input">
-                <button id="exportKMLSearch" class="btn">Export Search</button>
-            </div>
-        </div>
+        <!-- Page 2: WMS Layers -->
+        <div id="page2" class="sidebar-page">
+            <!-- WMS Layers Section -->
+            <div class="section">
+                <h2 class="section-header">🌍 WMS Layers</h2>
+                <div class="section-content" id="wmsLayersContent">
+                    <!-- Nature WMS -->
+                    <div class="wms-group">
+                        <h4 class="wms-group-header">Nature</h4>
+                        <ul class="wms-layer-list">
+                            <li>
+                                <input type="checkbox" id="osmWms" onclick="toggleWmsLayer('osmWms', wmsLayers.nature)">
+                                <label for="osmWms">OpenStreetMap WMS</label>
+                            </li>
+                        </ul>
+                    </div>
 
-        <!-- Buffering Analysis Section -->
-        <div class="section">
-            <h2 class="section-header">📏 Buffering Analysis</h2>
-            <div class="section-content">
-                <p>Enter X, Y coordinates and buffer distance:</p>
-                <div class="input-group">
-                    <input type="number" id="xCoord" placeholder="X (Lon)" class="input">
-                    <input type="number" id="yCoord" placeholder="Y (Lat)" class="input">
-                </div>
-                <input type="number" id="bufferDistance" placeholder="Buffer Distance (m)" class="input">
-                <button id="applyBuffer" class="btn">Apply Buffer</button>
-            </div>
-        </div>
+                    <!-- Topographic WMS -->
+                    <div class="wms-group">
+                        <h4 class="wms-group-header">Topographic</h4>
+                        <ul class="wms-layer-list">
+                            <li>
+                                <input type="checkbox" id="germanyTopographic" onclick="toggleWmsLayer('germanyTopographic', wmsLayers.topographic)">
+                                <label for="germanyTopographic">Germany Topographic</label>
+                            </li>
+                        </ul>
+                    </div>
 
-        <!-- WMS Layers Section -->
-        <div class="section">
-            <h2 class="section-header">🌍 WMS Layers</h2>
-            <div class="section-content" id="wmsLayersContent">
-                <!-- Nature WMS -->
-                <div class="wms-group">
-                    <h4 class="wms-group-header">Nature</h4>
-                    <ul class="wms-layer-list">
-                        <li>
-                            <input type="checkbox" id="osmWms" onclick="toggleWmsLayer('osmWms', wmsLayers.nature)">
-                            <label for="osmWms">OpenStreetMap WMS</label>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Topographic WMS -->
-                <div class="wms-group">
-                    <h4 class="wms-group-header">Topographic</h4>
-                    <ul class="wms-layer-list">
-                        <li>
-                            <input type="checkbox" id="germanyTopographic" onclick="toggleWmsLayer('germanyTopographic', wmsLayers.topographic)">
-                            <label for="germanyTopographic">Germany Topographic</label>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Borders WMS -->
-                <div class="wms-group">
-                    <h4 class="wms-group-header">Borders</h4>
-                    <ul class="wms-layer-list">
-                        <li>
-                            <input type="checkbox" id="demisBorders" onclick="toggleWmsLayer('demisBorders', wmsLayers.borders)">
-                            <label for="demisBorders">Borders</label>
-                        </li>
-                    </ul>
+                    <!-- Borders WMS -->
+                    <div class="wms-group">
+                        <h4 class="wms-group-header">Borders</h4>
+                        <ul class="wms-layer-list">
+                            <li>
+                                <input type="checkbox" id="demisBorders" onclick="toggleWmsLayer('demisBorders', wmsLayers.borders)">
+                                <label for="demisBorders">Borders</label>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
